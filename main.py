@@ -1,8 +1,11 @@
-import pandas as pd
 import myModules.tweetreader as tr
 
-def _main_():
-    tr.readCSV('train.csv')
+def main():
+    data = tr.readCSV('res/train.csv')
+    data = tr.sanitizeSentences(data, "sentimentText")
+    worddictionary = tr.separateWords(data, 'sentimentText')
+    
+    return
 
 
-_main_()
+main()

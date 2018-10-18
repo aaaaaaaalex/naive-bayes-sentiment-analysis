@@ -1,16 +1,23 @@
-__data__ = {}
+import re
+import pandas as pd
 
-def sanitizeSentences(sentenceList):
-    for sentence in sentenceList:
-        print("TODO: sanitize sentences")
-        # remove special characters, possibly keeping in emojis if tone can be parsed from them
-    return
+# takes a pandas DataFrame and removes any undesireable characters from the column specified, returns a copy of the processed data
+def sanitizeSentences(data, columnname):
+    copydata = data.copy()
+    
+    # remove special characters, possibly keeping in emojis if tone can be parsed from them
+    copydata.loc[ :, columnname] = copydata.loc[ :, columnname].apply(
+        lambda row: 
+            re.sub( r"[\'\"\\\+\*\?\[\^\]\$\(\)\{\}\=\<\>\|\:\;\&\#\@\`\/\%\-()]", "", row )
+    )
+
+    #print( copydata.loc[ :, 'sentimentText'] )
+    return copydata
 
 # takes a list of sentences and breaks them into their individual words, retuned as list
-def separateWords(sentenceList):
-    for sentence in sentenceList:
-        print("TODO: separate words")
-        # make pandas dataset of individual words from list of sentences
+def separateWords(data, columnname):
+    
+
     return
 
 # take a list of words and return a dict where <key:value> represents <word:count>
@@ -21,16 +28,9 @@ def countUniqueWords(list):
     return
 
 def readCSV(filename):
-    __data__ = {}
+    data = {}
     with open(filename) as file:
-        __data__ = pd.read_csv(file, names=["itemID", "sentiment", "sentimentSrc", "sentimentText"], skiprows=[0], usecols=[0,1,2,3])
-        __data__ = __data__.dropna()
-        __data__['sentiment'] = __data__['sentiment'].astype("int")
-
-        positives = __data__[ (__data__['sentiment'] == 1) ]
-        negatives = __data__[ (__data__['sentiment'] == 0) ]
-        print ( positives['sentimentText'])
-    return __data__
-
-def getData():
-    return __data__
+        data = pd.read_csv(file, names=["itemID", "sentiment", "sentimentSrc", "sentimentText"], skiprows=[0], usecols=[0,1,2,3])
+        data = data.dropna()
+        data['sentiment'] = data['sentiment'].astype("int")
+    return data
