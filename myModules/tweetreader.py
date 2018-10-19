@@ -1,5 +1,7 @@
 import re
 import pandas as pd
+import numpy as np
+
 
 # takes a pandas DataFrame and removes any undesireable characters from the column specified, returns a copy of the processed data
 def sanitizeSentences(data, columnname):
@@ -14,18 +16,27 @@ def sanitizeSentences(data, columnname):
     #print( copydata.loc[ :, 'sentimentText'] )
     return copydata
 
-# takes a list of sentences and breaks them into their individual words, retuned as list
+
+
+# takes a list of sentences and breaks them into their individual words, retuned as NumPy Array
 def separateWords(data, columnname):
+    allwords = np.array([""])
+    copydata = data.copy()
     
+    for sentence in copydata[columnname]:
+        words = np.array( sentence.split(" ") )
+        allwords = np.append(allwords, words)
 
-    return
+    allwords = allwords[ allwords != "" ]
+    return allwords
 
+    
 # take a list of words and return a dict where <key:value> represents <word:count>
 def countUniqueWords(list):
-    for word in list:
-        print("TODO: count unique words")
-        # make pandas dataset word/count pairs of individual words
+    print("TODO: count unique words")
+    # make pandas dataset word/count pairs of individual words
     return
+
 
 def readCSV(filename):
     data = {}
