@@ -41,7 +41,7 @@ def pSetGivenWord(word, pWordsGivenSet, pSet, pWords):
     try:
         p = (pWordsGivenSet[word] * pSet) / pWords[word]
     except KeyError:
-        p = None
+        p = pSet
     return p
 
 # determines the probability that a sentence (list of words, not a long string) belongs to a set based on the average p(set|word) across the sentence
@@ -51,8 +51,6 @@ def pSetGivenSentence(sentence, pWordsGivenSet, pSet, pWords):
         lambda row:
             pSetGivenWord(row.lower(), pWordsGivenSet, pSet, pWords )
     )
-
     sentence = sentence.dropna()
     p = sentence.sum() / len(sentence)
     return p
-

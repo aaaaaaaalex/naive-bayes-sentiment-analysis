@@ -2,6 +2,12 @@ import re
 import pandas as pd
 import numpy as np
 
+def filterChars(chars):
+    chars = chars.lower()
+    chars = re.sub( r"[\'\"\\\+\*\!\.\,\?\[\^\]\{\}\=\<\>\|\;\&\#\@\`\/\%\-\_\~0-9]", "", chars )
+    chars = re.sub( r"[ {2,}]", " ", chars)
+    return chars
+
 # takes a pandas DataFrame and removes any undesireable characters from the column specified, returns a copy of the processed data
 def sanitizeSentences(data, columnname):
     copydata = data.copy()
@@ -9,19 +15,24 @@ def sanitizeSentences(data, columnname):
     # remove special characters, possibly keeping in emojis if tone can be parsed from them
     copydata.loc[ :, columnname] = copydata.loc[ :, columnname].apply(
         lambda row:
-            re.sub( r"[\'\"\\\+\*\!\.\,\?\[\^\]\$\(\)\{\}\=\<\>\|\:\;\&\#\@\`\/\%\-\_\~0-9]", "", str.lower(row) )
+            filterChars(row)
     )
     #print( copydata.loc[ :, 'sentimentText'] )
-    return copydata
+    return copydata[ copydata[columnname] != "" ]
 
 
 # takes a list of sentences and breaks them into their individual words, retuned a Pandas Frame with column 'words'
+# if columnname is none, 'data' is assumed to be a single sentence
 def separateWords(data, columnname):
-    allwords = np.array([""])
-    copydata = data.copy()
-    
-    for sentence in copydata[columnname]:
-        words = np.array( sentence.split(" ") )
+    allwords = np.array([""]) 
+
+    if columnname is not None:
+        copydata = data.copy()
+        for sentence in copydata[columnname]:
+            words = np.array( sentence.split(" ") )
+            allwords = np.append(allwords, words)
+    else:
+        words = np.array( data.split(" "))
         allwords = np.append(allwords, words)
 
     allwords = allwords[ allwords != "" ]
