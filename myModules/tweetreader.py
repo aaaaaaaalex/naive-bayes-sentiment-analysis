@@ -2,23 +2,20 @@ import re
 import pandas as pd
 import numpy as np
 
-
 # takes a pandas DataFrame and removes any undesireable characters from the column specified, returns a copy of the processed data
 def sanitizeSentences(data, columnname):
     copydata = data.copy()
     
     # remove special characters, possibly keeping in emojis if tone can be parsed from them
     copydata.loc[ :, columnname] = copydata.loc[ :, columnname].apply(
-        lambda row: 
-            re.sub( r"[\'\"\\\+\*\?\[\^\]\$\(\)\{\}\=\<\>\|\:\;\&\#\@\`\/\%\-()]", "", row )
+        lambda row:
+            re.sub( r"[\'\"\\\+\*\!\.\,\?\[\^\]\$\(\)\{\}\=\<\>\|\:\;\&\#\@\`\/\%\-\_\~0-9]", "", str.lower(row) )
     )
-
     #print( copydata.loc[ :, 'sentimentText'] )
     return copydata
 
 
-
-# takes a list of sentences and breaks them into their individual words, retuned as NumPy Array
+# takes a list of sentences and breaks them into their individual words, retuned a Pandas Frame with column 'words'
 def separateWords(data, columnname):
     allwords = np.array([""])
     copydata = data.copy()
@@ -28,14 +25,13 @@ def separateWords(data, columnname):
         allwords = np.append(allwords, words)
 
     allwords = allwords[ allwords != "" ]
-    return allwords
+    return pd.DataFrame(allwords,  columns=['words'])
 
     
-# take a list of words and return a dict where <key:value> represents <word:count>
-def countUniqueWords(list):
-    print("TODO: count unique words")
-    # make pandas dataset word/count pairs of individual words
-    return
+# take a Pandas DataFrame of words and return list where <key:value> represents <word:count>
+def countUniqueWords(words):
+    uniquewords = pd.value_counts(words) 
+    return uniquewords
 
 
 def readCSV(filename):
