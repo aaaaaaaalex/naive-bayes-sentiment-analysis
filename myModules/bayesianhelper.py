@@ -54,12 +54,12 @@ def pWordGivenSet(word, pWordsGivenSet, setwordcount):
 def pSetGivenSentence(sentence, setwordcount, pWordsGivenSet, pSet):
     wordProbs = sentence.apply( # P(w|c)
         lambda word:
-            pWordGivenSet(word.lower(), pWordsGivenSet, setwordcount)
+            pWordGivenSet(word, pWordsGivenSet, setwordcount)
     )
 
     wordProbs = np.log10(wordProbs) # log10 of P(w|c)
     sumOfLogWordProbs = wordProbs.sum() # sum of the log of P(w|c)
-    
+
     logPSet = np.log10(pSet)
     score = logPSet + sumOfLogWordProbs
     return score

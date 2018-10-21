@@ -1,6 +1,7 @@
 import re
 import pandas as pd
 import numpy as np
+from nltk.corpus import stopwords
 
 def filterChars(chars):
     chars = chars.lower()
