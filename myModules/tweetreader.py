@@ -21,28 +21,38 @@ def sanitizeSentences(data, columnname):
     return copydata[ copydata[columnname] != "" ]
 
 
-# takes a list of sentences and breaks them into their individual words, retuned a Pandas Frame with column 'words'
+# takes a list of sentences and breaks them into their individual words, returns a Pandas Series with <key:value> pair <index:word>
 # if columnname is none, 'data' is assumed to be a single sentence
 def separateWords(data, columnname):
-    allwords = np.array([""]) 
+    allwords = pd.Series([""]) 
 
     if columnname is not None:
         copydata = data.copy()
         for sentence in copydata[columnname]:
-            words = np.array( sentence.split(" ") )
-            allwords = np.append(allwords, words)
+            words = pd.Series( sentence.split(" ") )
+            allwords = allwords.append(words, ignore_index=True)
     else:
-        words = np.array( data.split(" "))
-        allwords = np.append(allwords, words)
+        words = pd.Series( data.split(" "))
+        allwords = allwords.append( words , ignore_index=True)
 
     allwords = allwords[ allwords != "" ]
-    return pd.DataFrame(allwords,  columns=['words'])
+    return allwords
 
     
-# take a Pandas DataFrame of words and return list where <key:value> represents <word:count>
-def countUniqueWords(words):
-    uniquewords = pd.value_counts(words) 
-    return uniquewords
+# take a Pandas DataFrame with column 'words' and return new DataFrame with column negativeCount
+# if 'vocabulary' is provided, any vocabulary words not found in 'words' will be added to it with count:0
+def countUniqueWords(words, vocabulary):
+    uniquewords = pd.value_counts(words)
+    if vocabulary is None:
+        return uniquewords
+    
+    # the below operations have the effect of merging the two series - 0 is added to any words that are already counted, non-present values are added as 0
+    zeroedvocabulary = vocabulary.apply(
+        lambda wordcount:
+            wordcount*0
+    )
+    uniquewords = uniquewords.add( zeroedvocabulary , fill_value=0)
+    return uniquewords.sort_values(ascending = False)
 
 
 def readCSV(filename):

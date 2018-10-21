@@ -46,7 +46,6 @@ def pSetGivenWord(word, pWordsGivenSet, pSet, pWords):
 
 # determines the probability that a sentence (list of words, not a long string) belongs to a set based on the average p(set|word) across the sentence
 def pSetGivenSentence(sentence, pWordsGivenSet, pSet, pWords):
-    sentence = pd.Series(sentence)
     sentence = sentence.apply(
         lambda row:
             pSetGivenWord(row.lower(), pWordsGivenSet, pSet, pWords )

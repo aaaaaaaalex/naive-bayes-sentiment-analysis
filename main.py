@@ -8,8 +8,8 @@ def testModelOnTweet(sentimenttext, actualsentiment):
     sentimenttext = tr.separateWords(sentimenttext, None)
 
     try:
-        pSentencePositive = bh.pSetGivenSentence( sentimenttext.words, P_WORDS_POSITIVE, P_POSITIVE, P_WORDS )
-        pSentenceNegative = bh.pSetGivenSentence( sentimenttext.words, P_WORDS_NEGATIVE, P_NEGATIVE, P_WORDS )
+        pSentencePositive = bh.pSetGivenSentence( sentimenttext, P_WORDS_POSITIVE, P_POSITIVE, P_WORDS )
+        pSentenceNegative = bh.pSetGivenSentence( sentimenttext, P_WORDS_NEGATIVE, P_NEGATIVE, P_WORDS )
         sentiment = 1 if pSentencePositive > pSentenceNegative else 0
         return (sentiment == actualsentiment)
 
@@ -25,19 +25,24 @@ def main():
     data = tr.readCSV('res/train.csv')
     data = tr.sanitizeSentences(data, "sentimentText")
 
+    # get DataFrames filtered by sentiment, then get DataFrames of all words found
     negativewords = tr.separateWords( data[ data['sentiment'] == 0 ], 'sentimentText' )
     positivewords = tr.separateWords( data[ data['sentiment'] == 1 ], 'sentimentText' )
-    
-    vocabulary = tr.countUniqueWords(
-        (tr.separateWords( data, 'sentimentText' )).words
-        )
+    allwords      = tr.separateWords( data, 'sentimentText' )
 
-    pos_wordcount = tr.countUniqueWords(positivewords.words)
-    neg_wordcount = tr.countUniqueWords(negativewords.words)
+    # get Pandas Series's where each word in the vocabulary is a key, and the corresponding value is word count
+    # including the full vocabulary as an argument will add any unpresent characters to the wordcount with count 0
+    vocabulary    = tr.countUniqueWords( allwords , None)
+    pos_wordcount = tr.countUniqueWords( positivewords, vocabulary )
+    neg_wordcount = tr.countUniqueWords( negativewords, vocabulary )
 
-    # get params for Naive Bayes Theorem: P(positive|word) = (P(word|positive) * P(positive)) / P(word)
+
+
+    # get params for Naive Bayes Theorem: P(positive|word) = ( P(word|positive) * P(positive) ) / P(word)
+    #                                     P(negative|word) = ( P(word|negative) * P(negative) ) / P(word)
     global P_WORDS_POSITIVE 
     P_WORDS_POSITIVE = bh.pOfWordsGivenSet(pos_wordcount, vocabulary)
+    return
     global P_WORDS_NEGATIVE
     P_WORDS_NEGATIVE = bh.pOfWordsGivenSet(neg_wordcount, vocabulary)
 
