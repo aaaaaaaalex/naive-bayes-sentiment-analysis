@@ -1,13 +1,17 @@
-import re
 import pandas as pd
 import numpy as np
-from nltk.corpus import stopwords
+import myModules.sanity as sanity
 
-def filterChars(chars):
-    chars = chars.lower()
-    chars = re.sub( r"[\'\"\\\+\*\.\,\!\?\[\^\]\{\}\=\<\>\|\;\:\(\)\&\#\@\$\`\/\%\-\_\~0-9]", "", chars )
-    chars = re.sub( r"[ {2,}]", " ", chars)
-    return chars
+
+# a wrapper function that performs all desired preprocessing on any given row of text
+def performPreprocessing(row):
+    row = sanity.tokenizeEmojis(row)
+    row = sanity.filterSpecialChars(row)
+    row = sanity.filterStopwords(row)
+    row = sanity.filterMultipleSpaces(row)
+    return row
+
+
 
 # takes a pandas DataFrame and removes any undesireable characters from the column specified, returns a copy of the processed data
 def sanitizeSentences(data, columnname):
@@ -16,7 +20,7 @@ def sanitizeSentences(data, columnname):
     # remove special characters, possibly keeping in emojis if tone can be parsed from them
     copydata.loc[ :, columnname] = copydata.loc[ :, columnname].apply(
         lambda row:
-            filterChars(row)
+            performPreprocessing(row)
     )
     #print( copydata.loc[ :, 'sentimentText'] )
     return copydata[ copydata[columnname] != "" ]
