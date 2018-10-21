@@ -7,16 +7,11 @@ import pandas as pd
 def testModelOnTweet(sentimenttext, actualsentiment):
     sentimenttext = tr.separateWords(sentimenttext, None)
 
-    try:
-        pSentencePositive = bh.pSetGivenSentence( sentimenttext, P_WORDS_POSITIVE, P_POSITIVE, P_WORDS )
-        pSentenceNegative = bh.pSetGivenSentence( sentimenttext, P_WORDS_NEGATIVE, P_NEGATIVE, P_WORDS )
-        sentiment = 1 if pSentencePositive > pSentenceNegative else 0
-        return (sentiment == actualsentiment)
+    pSentencePositive = bh.pSetGivenSentence( sentimenttext, POS_WORDCOUNT, P_WORDS_POSITIVE, P_POSITIVE)
+    pSentenceNegative = bh.pSetGivenSentence( sentimenttext, NEG_WORDCOUNT, P_WORDS_NEGATIVE, P_NEGATIVE)
 
-    except ZeroDivisionError:
-        print("--------EXCEPTION-----\n",sentimenttext.words)
-        print("LENGTH:", len(sentimenttext.words))
-
+    sentiment = 1 if pSentencePositive > pSentenceNegative else 0
+    return (sentiment == actualsentiment)
 
 
 def main():
@@ -30,28 +25,26 @@ def main():
     positivewords = tr.separateWords( data[ data['sentiment'] == 1 ], 'sentimentText' )
     allwords      = tr.separateWords( data, 'sentimentText' )
 
-    # get Pandas Series's where each word in the vocabulary is a key, and the corresponding value is word count
-    # including the full vocabulary as an argument will add any unpresent characters to the wordcount with count 0
-    vocabulary    = tr.countUniqueWords( allwords , None)
-    pos_wordcount = tr.countUniqueWords( positivewords, vocabulary )
-    neg_wordcount = tr.countUniqueWords( negativewords, vocabulary )
+    global VOCABULARY    # all words that have occurred as keys, number of occurrences as values
+    global POS_WORDCOUNT # all words that have occurred as keys, number of occurrences in positive records as values
+    global NEG_WORDCOUNT # all words that have occurred as keys, number of occurrences in negative records as values
+    VOCABULARY    = tr.countUniqueWords( allwords , None)
+    POS_WORDCOUNT = tr.countUniqueWords( positivewords, VOCABULARY )
+    NEG_WORDCOUNT = tr.countUniqueWords( negativewords, VOCABULARY )
 
 
 
-    # get params for Naive Bayes Theorem: P(positive|word) = ( P(word|positive) * P(positive) ) / P(word)
-    #                                     P(negative|word) = ( P(word|negative) * P(negative) ) / P(word)
-    global P_WORDS_POSITIVE 
-    P_WORDS_POSITIVE = bh.pOfWordsGivenSet(pos_wordcount, vocabulary)
-    return
-    global P_WORDS_NEGATIVE
-    P_WORDS_NEGATIVE = bh.pOfWordsGivenSet(neg_wordcount, vocabulary)
+    global P_WORDS_POSITIVE # given positive, probabilities of every word in vocabulary occurring
+    global P_WORDS_NEGATIVE # given negative, probabilities of every word in vocabulary occurring
+    P_WORDS_POSITIVE = bh.pOfWordsGivenSet(POS_WORDCOUNT, VOCABULARY)
+    P_WORDS_NEGATIVE = bh.pOfWordsGivenSet(NEG_WORDCOUNT, VOCABULARY)
 
-    global P_POSITIVE
-    P_POSITIVE = bh.pOfSet( 1, data, "sentiment")
-    global P_NEGATIVE
+    global P_POSITIVE #probability of a set being positive
+    global P_NEGATIVE #probability of a set being negative
+    P_POSITIVE = bh.pOfSet(1, data, 'sentiment')
     P_NEGATIVE = 1 - P_POSITIVE
-    global P_WORDS
-    P_WORDS = bh.pWords( [pos_wordcount, neg_wordcount] )
+    
+
 
     # TESTING --------------------------------------------
     testingdata = tr.readCSV('res/test.csv')
@@ -63,8 +56,8 @@ def main():
 
     accuracy = correct.sum() / len(correct)
     print( "accuracy:", accuracy )
-    print( "examples of correct classification:")
-    print(testingdata[ correct ][:10])
+    print( "examples of bad classification:")
+    print(testingdata[ correct == False ][:10])
 
     return
 

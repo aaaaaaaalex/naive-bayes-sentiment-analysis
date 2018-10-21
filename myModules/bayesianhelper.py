@@ -2,6 +2,8 @@
 Bayesian functions for calulating probabilities given certain conditions
 """
 import pandas as pd
+import numpy  as np
+
 
 # find probability of word occurring out of all words in a set ( P(word|set) )
 # takes Series of elements and the total occurrences of each element
@@ -36,20 +38,28 @@ def pWords( allsets ):
 
     return probWords
 
-# determines the probability of a set given a word, based off P(word|set), P(set), and P(word)
-def pSetGivenWord(word, pWordsGivenSet, pSet, pWords):
+
+# determines the probability of a single word, given class
+# setwordcount contains the wordcount for every word in the vocabulary, where the word's record was of a certain set
+def pWordGivenSet(word, pWordsGivenSet, setwordcount):
     try:
-        p = (pWordsGivenSet[word] * pSet) / pWords[word]
+        p = pWordsGivenSet[word]
     except KeyError:
-        p = pSet
+        p = (0 + 1) / (setwordcount.sum() + len(setwordcount) ) #if word isnt found in vocabulary
     return p
 
+
 # determines the probability that a sentence (list of words, not a long string) belongs to a set based on the average p(set|word) across the sentence
-def pSetGivenSentence(sentence, pWordsGivenSet, pSet, pWords):
-    sentence = sentence.apply(
-        lambda row:
-            pSetGivenWord(row.lower(), pWordsGivenSet, pSet, pWords )
+# uses multinomial algorithm
+def pSetGivenSentence(sentence, setwordcount, pWordsGivenSet, pSet):
+    wordProbs = sentence.apply( # P(w|c)
+        lambda word:
+            pWordGivenSet(word.lower(), pWordsGivenSet, setwordcount)
     )
-    sentence = sentence.dropna()
-    p = sentence.sum() / len(sentence)
-    return p
+
+    wordProbs = np.log10(wordProbs) # log10 of P(w|c)
+    sumOfLogWordProbs = wordProbs.sum() # sum of the log of P(w|c)
+    
+    logPSet = np.log10(pSet)
+    score = logPSet + sumOfLogWordProbs
+    return score

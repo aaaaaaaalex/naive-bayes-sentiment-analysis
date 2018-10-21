@@ -4,7 +4,7 @@ import numpy as np
 
 def filterChars(chars):
     chars = chars.lower()
-    chars = re.sub( r"[\'\"\\\+\*\!\.\,\?\[\^\]\{\}\=\<\>\|\;\&\#\@\`\/\%\-\_\~0-9]", "", chars )
+    chars = re.sub( r"[\'\"\\\+\*\.\,\!\?\[\^\]\{\}\=\<\>\|\;\:\(\)\&\#\@\$\`\/\%\-\_\~0-9]", "", chars )
     chars = re.sub( r"[ {2,}]", " ", chars)
     return chars
 
@@ -39,8 +39,8 @@ def separateWords(data, columnname):
     return allwords
 
     
-# take a Pandas DataFrame with column 'words' and return new DataFrame with column negativeCount
-# if 'vocabulary' is provided, any vocabulary words not found in 'words' will be added to it with count:0
+# converts a Pandas.Series of all word occurrences into a wordcount of every unique word
+# if 'vocabulary' is provided, any vocabulary words not found in 'words' will be added to the output Series with count:0
 def countUniqueWords(words, vocabulary):
     uniquewords = pd.value_counts(words)
     if vocabulary is None:
