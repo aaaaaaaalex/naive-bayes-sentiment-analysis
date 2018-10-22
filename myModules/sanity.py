@@ -5,18 +5,18 @@ import re
 import pandas as pd
 import nltk
 from nltk.corpus import stopwords as sw
-
+from nltk.stem import WordNetLemmatizer
 
 # removes all special characters from input
 def filterSpecialChars(sentence):
     sentence = sentence.lower()
-    sentence = re.sub( r"&(.{1,5});", "" ,sentence)
+    sentence = re.sub( r"&(.{1,5});", "" ,sentence) #HTML-Entities
     sentence = re.sub( r"[\'\"\\\+\*\.\,\!\?\[\^\]\{\}\=\<\>\|\;\:\(\)\&\#\@\$\`\/\%\-\_\~0-9]", "", sentence )
     return sentence
 
 # removes spaces made of more than one whitespace char, replaces them with a single whitespace
 def filterMultipleSpaces(sentence):
-    sentence = re.sub( r" +", " ", sentence)
+    sentence = re.sub( r" +"   , " ", sentence )
     return sentence
 
 
@@ -30,12 +30,15 @@ def filterStopwords(sentence):
                 lambda word:
                     _checkIsStopword(word, stopwords)
             )
-
             sentence = " ".join(inputwords)
+
+            #internally call the spaces filter to ensure output isnt mangled
+            sentence = filterMultipleSpaces(sentence)
             return sentence
         except LookupError:
+            print("--------Downloading stopwords library from NLTK...")
             nltk.download('stopwords')
-            print("-------done!")
+            print("--------Done! Continuing execution...")
 
 # returns the word unchanged if not a stopword, if it is, returns blank string
 def _checkIsStopword(word, stopwords):
@@ -61,4 +64,35 @@ def tokenizeEmojis(sentence):
 
 
 def createNegationFeatures(sentence):
-    print("TODO: negation")
+    negations = [
+            {'regex': r"[\s(^)]not\s"  , 'replacewith': " not-"},
+            {'regex': r"[\s(^)]no\s"   , 'replacewith': " no-"},
+            {'regex': r"[\s(^)]didnt\s", 'replacewith': " didnt-"},
+            {'regex': r"[\s(^)]wont\s" , 'replacewith': " wont-"},
+        ]
+    for n in negations:
+        sentence = re.sub( n['regex'], n['replacewith'], sentence )
+    return sentence
+
+
+# pass words in a sentence through a lemmatizer and return the processed sentence
+def lemmatizeWords(sentence):
+    while True:
+        try:
+            lemmatizer = WordNetLemmatizer()
+            words = pd.Series(data=sentence.split(" "))
+            words = words.apply(
+                    lambda word:
+                        lemmatizer.lemmatize(word)
+                    )
+
+            sentence = " ".join(words.values)
+            return sentence
+        except LookupError:
+            print("--------Downloading wordnet from NLTK...")
+            nltk.download('wordnet')
+            print("--------Done!")
+
+
+
+

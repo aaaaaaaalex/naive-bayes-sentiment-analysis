@@ -2,14 +2,17 @@ import pandas as pd
 import numpy as np
 import myModules.sanity as sanity
 
-
+#---------------------------------------------------Enable/Disable Preprocessing Here
 # a wrapper function that performs all desired preprocessing on any given row of text
 def performPreprocessing(row):
-    row = sanity.tokenizeEmojis(row)
+    #row = sanity.tokenizeEmojis(row)
     row = sanity.filterSpecialChars(row)
-    row = sanity.filterStopwords(row)
+    #row = sanity.createNegationFeatures(row)
+    #row = sanity.filterStopwords(row)
     row = sanity.filterMultipleSpaces(row)
+    #row = sanity.lemmatizeWords(row)
     return row
+
 
 
 
